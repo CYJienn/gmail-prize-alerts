@@ -27,3 +27,17 @@ def test_lock_rejects_overlap():
     with lock():
         with pytest.raises(RuntimeError,match='Another command'):
             with lock(): pass
+
+
+def test_token_migration_preserves_cloud_database():
+    import base64, zlib
+    from prize_alerts.cloud import replace_token
+    key=Fernet.generate_key()
+    payload={'database':base64.b64encode(b'latest delivery status').decode(),'token':json.dumps({'refresh_token':'old-test-value'})}
+    encrypted=Fernet(key).encrypt(zlib.compress(json.dumps(payload).encode()))
+    updated=replace_token(encrypted,key,json.dumps({'refresh_token':'new-test-value'}))
+    restored=json.loads(zlib.decompress(Fernet(key).decrypt(updated)))
+    assert restored['database']==payload['database']
+    assert json.loads(restored['token'])['refresh_token']=='new-test-value'
+    with pytest.raises(RuntimeError,match='no refresh token'):
+        replace_token(encrypted,key,'{}')

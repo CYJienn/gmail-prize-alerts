@@ -88,9 +88,43 @@ def run():
     store.save(pack_state(ROOT,key))
     if result.returncode: raise RuntimeError('Scanner failed; encrypted pending state saved. See safe scanner error above.')
 
+
+def replace_token(encrypted, key, token):
+    """Replace only authorization; preserve the latest cloud database byte for byte."""
+    payload=json.loads(zlib.decompress(Fernet(key).decrypt(encrypted)))
+    value=json.loads(token)
+    if not value.get('refresh_token'):
+        raise RuntimeError('New authorization has no refresh token. Authorize again.')
+    if 'database' not in payload:
+        raise RuntimeError('Cloud delivery history is missing; refusing migration.')
+    payload['token']=token
+    return Fernet(key).encrypt(zlib.compress(json.dumps(payload).encode()))
+
+
+def sync_token():
+    from .__main__ import gmail
+    gmail()  # Verify student mailbox and read-only scope before uploading.
+    result=subprocess.run(['git','credential','fill'],input='protocol=https\nhost=github.com\n\n',text=True,capture_output=True,timeout=30)
+    values=dict(line.split('=',1) for line in result.stdout.splitlines() if '=' in line)
+    if result.returncode or not values.get('password'):
+        raise RuntimeError('GitHub authentication is required locally.')
+    os.environ['GH_STATE_TOKEN']=values['password']
+    os.environ['GITHUB_REPOSITORY']='CYJienn/gmail-prize-alerts'
+    key=(ROOT/'.cloud-state-key').read_bytes().strip()
+    store=Store()
+    encrypted=store.restore()
+    if not store.sha:
+        raise RuntimeError('Existing cloud delivery state was not found; refusing reset.')
+    # Optimistic SHA check in save prevents overwriting a concurrent cloud run.
+    updated=replace_token(encrypted,key,(ROOT/'token.json').read_text(encoding='utf-8'))
+    store.save(updated)
+    print('Cloud Gmail authorization updated; delivery history preserved.')
+
 if __name__=='__main__':
     try:
-        prepare() if len(sys.argv)>1 and sys.argv[1]=='prepare' else run()
+        if len(sys.argv)>1 and sys.argv[1]=='prepare': prepare()
+        elif len(sys.argv)>1 and sys.argv[1]=='sync-token': sync_token()
+        else: run()
     except Exception as exc:
         print(str(exc) if isinstance(exc,RuntimeError) else 'Cloud operation failed ('+type(exc).__name__+'); sensitive details suppressed.')
         raise SystemExit(1)
