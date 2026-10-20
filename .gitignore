@@ -1,0 +1,15 @@
+.env
+credentials*.json
+token.json
+.venv/
+__pycache__/
+.pytest_cache/
+*.sqlite*
+*.db*
+*.log
+.run.lock
+
+.cloud-state-key
+.github-secrets/
+publish/
+*.zip

@@ -1,0 +1,43 @@
+name: Gmail Prize Alerts
+on:
+  schedule:
+    - cron: '0 0 * * *'
+    - cron: '23 0 * * *'
+  workflow_dispatch:
+    inputs:
+      command:
+        description: 'dry-run first, telegram-test second, run for real email delivery'
+        required: true
+        default: dry-run
+        type: choice
+        options:
+          - dry-run
+          - telegram-test
+          - run
+permissions:
+  contents: write
+concurrency:
+  group: gmail-prize-alerts
+  cancel-in-progress: false
+jobs:
+  scan:
+    if: github.event_name == 'workflow_dispatch' || vars.SCHEDULE_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install dependencies
+        run: python -m pip install -r requirements-lock.txt
+      - name: Offline tests
+        run: python -m pytest -q
+      - name: Scan and persist encrypted delivery state
+        env:
+          GH_STATE_TOKEN: ${{ github.token }}
+          STATE_ENCRYPTION_KEY: ${{ secrets.STATE_ENCRYPTION_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          ALERT_COMMAND: ${{ inputs.command || 'run' }}
+        run: python -m prize_alerts.cloud
