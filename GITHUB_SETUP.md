@@ -58,3 +58,7 @@ Official documentation:
 ```
 
 Tests verify encrypted state round trips, preservation of sent and pending parts, rejection of wrong keys, and overlap locking, alongside scanner tests. Windows tests are completed locally; the first Actions dry-run also runs the suite on Ubuntu before using real secrets.
+
+## Verified activation
+
+Cloud dry-run (39471776134), Telegram test (39471901626), and normal scan (39472060820) completed successfully. User confirmed receiving the hosted Telegram test. Repository variable SCHEDULE_ENABLED was set to true and verified. Local Windows task Gmail Prize Alerts was disabled and verified Enabled=false. The GitHub daily schedule is now active at 00:00 UTC (08:00 Malaysia), with a 00:23 UTC recovery attempt. Google OAuth publishing status has not been verified; External/Testing expiry remains a configuration item to check.
