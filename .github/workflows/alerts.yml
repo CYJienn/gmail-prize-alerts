@@ -2,9 +2,8 @@ name: Gmail Prize Alerts
 on:
   schedule:
     - cron: '0 0 * * *'
-    - cron: '23 0 * * *'
-    - cron: '43 0 * * *'
-    - cron: '17 1,2 * * *'
+    # Recovery is eligible only on 21 October 2026; the gate below enforces the year.
+    - cron: '43 0 21 10 *'
   workflow_dispatch:
     inputs:
       command:
@@ -27,15 +26,31 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
+      - name: Gate dated recovery
+        id: gate
+        env:
+          EVENT_SCHEDULE: ${{ github.event.schedule }}
+        shell: bash
+        run: |
+          if [[ "$EVENT_SCHEDULE" == "43 0 21 10 *" && "$(date -u +%F)" != "2026-10-21" ]]; then
+            echo "scan=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "scan=true" >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/checkout@v4
+        if: steps.gate.outputs.scan == 'true' 
       - uses: actions/setup-python@v5
+        if: steps.gate.outputs.scan == 'true'
         with:
           python-version: '3.13'
       - name: Install dependencies
+        if: steps.gate.outputs.scan == 'true'
         run: python -m pip install -r requirements-lock.txt
       - name: Offline tests
+        if: steps.gate.outputs.scan == 'true'
         run: python -m pytest -q
       - name: Scan and persist encrypted delivery state
+        if: steps.gate.outputs.scan == 'true'
         env:
           GH_STATE_TOKEN: ${{ github.token }}
           STATE_ENCRYPTION_KEY: ${{ secrets.STATE_ENCRYPTION_KEY }}

@@ -70,3 +70,7 @@ After moving Google OAuth to In production, run `.\.venv\Scripts\python.exe -m p
 ## Additional schedule recovery attempts
 
 On 21 October 2026 at 08:33 Malaysia time, the workflow was active but GitHub had not created the expected scheduled runs. A manual cloud recovery scan was dispatched. Added 08:43, 09:17 and 10:17 Malaysia-time retry triggers alongside 08:00 and 08:23. These triggers use the same completed-window and delivery deduplication; they do not change the 08:00 cutoff or send routine status messages. All GitHub schedule triggers remain best effort and can be delayed or dropped. Manual dispatch tests do not prove that the schedule service will start on time.
+
+## Schedule narrowed at user request
+
+Daily automatic scanning is 08:00 Malaysia time only. The 08:23, 09:17 and 10:17 retries were removed. A dated 08:43 recovery on 21 October 2026 is configured with an exact-year/date gate, so it cannot scan in later years. No routine retry scans are configured from 22 October onward. GitHub start delays still apply.
