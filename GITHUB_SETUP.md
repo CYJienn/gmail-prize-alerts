@@ -66,3 +66,7 @@ Cloud dry-run (39471776134), Telegram test (39471901626), and normal scan (39472
 ## Renew cloud Gmail authorization without resetting deliveries
 
 After moving Google OAuth to In production, run `.\.venv\Scripts\python.exe -m prize_alerts authorize` and choose the student account. Then run `.\.venv\Scripts\python.exe -m prize_alerts.cloud sync-token`. This verifies the mailbox, downloads the latest encrypted cloud state, replaces only the OAuth token and saves with an optimistic SHA check. It does not replace cloud delivery history with an older local database. If a concurrent update produces HTTP 409, repeat sync-token after that workflow completes. Do not use prepare to reset an existing cloud deployment.
+
+## Additional schedule recovery attempts
+
+On 21 October 2026 at 08:33 Malaysia time, the workflow was active but GitHub had not created the expected scheduled runs. A manual cloud recovery scan was dispatched. Added 08:43, 09:17 and 10:17 Malaysia-time retry triggers alongside 08:00 and 08:23. These triggers use the same completed-window and delivery deduplication; they do not change the 08:00 cutoff or send routine status messages. All GitHub schedule triggers remain best effort and can be delayed or dropped. Manual dispatch tests do not prove that the schedule service will start on time.
