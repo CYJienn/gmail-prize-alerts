@@ -124,7 +124,7 @@ def test_timestamp_is_dynamic(date,expected):
     assert extract(m.as_bytes()).endswith('Sent: '+expected+' (Malaysia time)')
 
 
-@pytest.mark.parametrize('word', ['competition','COMPETITIONS','Competition!','pertandingan','PERTANDINGAN'])
+@pytest.mark.parametrize('word', ['competition','COMPETITIONS','Competition!','contest','CONTESTS','Contest!','pertandingan','PERTANDINGAN'])
 @pytest.mark.parametrize('location', ['subject','plain','html'])
 def test_additional_competition_keywords(word, location):
     if location == 'subject':
@@ -138,6 +138,6 @@ def test_additional_competition_keywords(word, location):
         assert 'https://example.org/enter?a=1&utm_source=uni' in result
     assert result is not None
 
-@pytest.mark.parametrize('word', ['competitionish','precompetition','noncompetitions','pertandingannya','prapertandingan'])
+@pytest.mark.parametrize('word', ['competitionish','precompetition','noncompetitions','contestant','contested','precontest','contestsuffix','pertandingannya','prapertandingan'])
 def test_additional_keywords_keep_whole_word_boundaries(word):
     assert extract(email(word)) is None

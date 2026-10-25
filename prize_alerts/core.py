@@ -7,7 +7,7 @@ from email.parser import BytesParser
 from bs4 import BeautifulSoup
 
 TZ = ZoneInfo('Asia/Kuala_Lumpur')
-KEY = re.compile(r'\b(?:prizes?|win|competitions?|pertandingan)\b', re.I)
+KEY = re.compile(r'\b(?:prizes?|win|competitions?|contests?|pertandingan)\b', re.I)
 INSTRUCTION = re.compile(r'\b(register|registration|participat\w*|apply|application|submit|submission|enter|entry|deadline|eligib\w*|competition|contest|join|sign\s*up)\b', re.I)
 FOOTER = re.compile(r'unsubscribe|privacy[ -]?policy|facebook\.com|instagram\.com|twitter\.com|linkedin\.com|youtube\.com|manage preferences', re.I)
 URL = re.compile(r'https?://[^\s<>"\u200b]+', re.I)
