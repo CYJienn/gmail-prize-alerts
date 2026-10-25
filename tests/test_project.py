@@ -122,3 +122,22 @@ def test_invalid_received_header_falls_back():
 def test_timestamp_is_dynamic(date,expected):
     m=EmailMessage(); m['Subject']='Win'; m['Date']=date; m.set_content('Win')
     assert extract(m.as_bytes()).endswith('Sent: '+expected+' (Malaysia time)')
+
+
+@pytest.mark.parametrize('word', ['competition','COMPETITIONS','Competition!','pertandingan','PERTANDINGAN'])
+@pytest.mark.parametrize('location', ['subject','plain','html'])
+def test_additional_competition_keywords(word, location):
+    if location == 'subject':
+        result=extract(email('Details soon',subject=word))
+    elif location == 'html':
+        result=extract(email('<p>'+word+'</p><p><a href="https://example.org/enter?a=1&amp;utm_source=uni">Register</a></p>',html=True))
+        assert 'https://example.org/enter?a=1&utm_source=uni' in result
+    else:
+        result=extract(email(word+'\n\nRegister https://example.org/enter?a=1&utm_source=uni'))
+        assert word in result
+        assert 'https://example.org/enter?a=1&utm_source=uni' in result
+    assert result is not None
+
+@pytest.mark.parametrize('word', ['competitionish','precompetition','noncompetitions','pertandingannya','prapertandingan'])
+def test_additional_keywords_keep_whole_word_boundaries(word):
+    assert extract(email(word)) is None
